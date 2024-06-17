@@ -79,13 +79,13 @@ let () =
 
   Canvas.show c;
 
-  retain_event @@
-    React.E.map (fun _ ->
+  (* retain_event @@ *)
+  let e1 = React.E.map (fun _ ->
         Backend.stop ()
-      ) Event.close;
+      ) Event.close in
 
-  retain_event @@
-    React.E.map (fun { Event.data = { Event.key; _ }; _ } ->
+  (* retain_event @@ *)
+  let e2 = React.E.map (fun { Event.data = { Event.key; _ }; _ } ->
         match key with
         | KeyEscape ->
             Backend.stop ()
@@ -99,10 +99,10 @@ let () =
             if (fst state.cur_dir = 0.0) then state.cur_dir <- (1.0, 0.0)
         | _ ->
             ()
-      ) Event.key_down;
+      ) Event.key_down in
 
-  retain_event @@
-    React.E.map (fun { Event.canvas = c; _ } ->
+  (* retain_event @@ *)
+   let e3 = React.E.map (fun { Event.canvas = c; _ } ->
         buildBackground c;
         if sumCoord (List.hd state.snake) state.cur_dir = state.food_loc then
           begin
@@ -120,7 +120,9 @@ let () =
         if snakeHitSelf state.snake || snakeHitWall state.snake then
           Backend.stop ();
         drawSnake c state.snake;
-        placeBlock c state.food_loc Color.green) Event.frame;
+        placeBlock c state.food_loc Color.green) Event.frame in
+
+  List.iter retain_event [e1;e2;e3];
 
   Backend.run (fun () ->
       clear_events ();
